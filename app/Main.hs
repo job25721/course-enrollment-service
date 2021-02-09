@@ -71,7 +71,7 @@ app :: Api ()
 app = do
   get "/api/courses" $ do
     courses' <- getState >>= (liftIO . readIORef . courses)
-    json $ courses'
+    json courses'
   get "/api/course" $ do
     courses' <- getState >>= (liftIO . readIORef . courses)
     cid <- param' "cid"
