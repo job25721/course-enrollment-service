@@ -8,7 +8,6 @@ module Main where
 import Control.Monad.IO.Class (liftIO)
 import Data.Aeson hiding (json)
 import Data.IORef
-import Data.Semigroup ((<>))
 import Data.Text (pack)
 import GHC.Generics
 import Web.Spock
@@ -46,6 +45,12 @@ data ApiResponse = ApiResponse
 instance ToJSON ApiResponse
 
 instance FromJSON ApiResponse
+
+allCourses :: [Course]
+allCourses =
+  [ Course {courseId = 261497, name = "Functional Programming", credit = 3, seat = 10, enrolled = 3},
+    Course {courseId = 261208, name = "Basic Computer Engr", credit = 3, seat = 100, enrolled = 29}
+  ]
 
 enroll :: Int -> [Course] -> [Course]
 enroll cid = map (\course -> if courseId course == cid then Course {courseId = courseId course, name = name course, credit = credit course, seat = (-) (seat course) 1, enrolled = (+) (enrolled course) 1} else course)
@@ -93,6 +98,6 @@ app = do
 
 main :: IO ()
 main = do
-  st <- ServerState <$> newIORef [Course {courseId = 261497, name = "Functional Programming", credit = 3, seat = 10, enrolled = 3}, Course {courseId = 261208, name = "Basic Computer Engr", credit = 3, seat = 100, enrolled = 29}]
+  st <- ServerState <$> newIORef allCourses
   spockCfg <- defaultSpockCfg () PCNoDatabase st
   runSpock 3000 (spock spockCfg app)
