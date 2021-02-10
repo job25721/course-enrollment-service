@@ -21,4 +21,4 @@ body
 }
 ```
 
-`GET /enroll?cid=Int` : Enroll a course by id
+`POST /enroll?cid=Int` : Enroll a course by id

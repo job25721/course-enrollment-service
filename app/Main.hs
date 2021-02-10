@@ -32,7 +32,7 @@ app = do
       atomicModifyIORef' coursesRef $ \courses ->
         (courses ++ [newCourse], ())
     text $ "added" <> pack (show newCourse)
-  get "/api/enroll" $ do
+  post "/api/enroll" $ do
     cid <- param' "cid"
     coursesRef <- courses <$> getState
     liftIO $
