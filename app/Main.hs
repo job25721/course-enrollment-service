@@ -22,7 +22,6 @@ import Web.Spock.Config
 -- instance ToJSON Person
 
 -- instance FromJSON Person
-
 data Course = Course
   { courseId :: Int,
     name :: [Char],
@@ -65,7 +64,7 @@ newtype ServerState = ServerState {courses :: IORef [Course]}
 
 type Api a = SpockM () () ServerState a
 
-type ApiAction a = SpockAction () () () a
+type ApiAction a = SpockAction () () ServerState a
 
 app :: Api ()
 app = do
@@ -76,17 +75,13 @@ app = do
     courses' <- getState >>= (liftIO . readIORef . courses)
     cid <- param' "cid"
     json $ findCourse cid courses'
-  get "/api/add" $ do
-    courseId <- param' "cid"
-    name <- param' "cname"
-    credit <- param' "credit"
-    seat <- param' "seat"
-    enrolled <- param' "enrolled"
+  post "/api/add" $ do
+    newCourse <- jsonBody' :: ApiAction Course
     coursesRef <- courses <$> getState
     liftIO $
       atomicModifyIORef' coursesRef $ \courses ->
-        (courses <> [Course {courseId = courseId, name = name, credit = credit, seat = seat, enrolled = enrolled}], ())
-    text $ "added" <> pack (show Course {courseId = courseId, name = name, credit = credit, seat = seat, enrolled = enrolled})
+        (courses ++ [newCourse], ())
+    text $ "added" <> pack (show newCourse)
   get "/api/enroll" $ do
     cid <- param' "cid"
     coursesRef <- courses <$> getState
