@@ -1,5 +1,7 @@
 # course-enrollment-service
 
+<u>Functional programming final-project</u>
+<br>
 created by Spock framework https://www.spock.li/
 
 ### API DOCS
