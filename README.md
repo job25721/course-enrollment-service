@@ -30,3 +30,5 @@ body
 ```
 
 `POST /enroll?cid=Int&secId=Int&sid=Int` : Enroll a course by id secId and studentId
+<br>
+`POST /drop?cid=Int&secId=Int&sid=Int` : Drop a course by id secId and studentId
