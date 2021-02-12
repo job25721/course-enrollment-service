@@ -38,11 +38,11 @@ app = do
     secId <- param' "secId"
     studentId <- param' "studentId"
     coursesRef <- courses <$> getState
+    courses' <- getState >>= (liftIO . readIORef . courses)
     liftIO $
       atomicModifyIORef' coursesRef $ \courses ->
         (enroll cid secId studentId courses, ())
-    courses' <- getState >>= (liftIO . readIORef . courses)
-    json $ "enrolled " <> pack (show (findCourse cid courses'))
+    json $ if alreadyEnroll studentId cid secId courses' then "already enrolled" else "enrolled " <> pack (show (findCourse cid courses'))
   post "/api/drop" $ do
     cid <- param' "cid"
     secId <- param' "secId"
