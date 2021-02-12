@@ -18,6 +18,7 @@ body
     "courseId" : Number,
     "name" : String,
     "credit" : Number,
+    "lecturer" : String,
     "sections" :
     [
         {
