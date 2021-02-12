@@ -1,4 +1,4 @@
-module Functions (findCourse, enroll, alreadyEnroll) where
+module Functions (findCourse, enroll, alreadyEnroll, dropCourse) where
 
 import Data.Course (Course (..), Section (..))
 import Data.Person (Student (..))
@@ -58,3 +58,30 @@ enroll cid secId sid courses
       )
       courses
   | otherwise = courses
+
+dropCourse :: Int -> Int -> Int -> [Course] -> [Course]
+dropCourse cid secId sid =
+  map
+    ( \course ->
+        if courseId course == cid
+          then
+            Course
+              { courseId = courseId course,
+                name = name course,
+                credit = credit course,
+                sections =
+                  map
+                    ( \sec ->
+                        if sectionId sec == secId
+                          then
+                            Section
+                              { sectionId = sectionId sec,
+                                seat = seat sec + 1,
+                                enrolledPerson = filter (\p -> studentId p /= sid) (enrolledPerson sec)
+                              }
+                          else sec
+                    )
+                    (sections course)
+              }
+          else course
+    )
