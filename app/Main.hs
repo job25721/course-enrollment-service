@@ -3,10 +3,11 @@
 module Main where
 
 import Control.Monad.IO.Class (liftIO)
-import Data.Course (Course (..))
+import Data.Course (Course (..), Section (..))
 import Data.IORef
 import Data.Text (pack)
-import Functions (allCourses, enroll, findCourse)
+import Functions (alreadyEnroll, enroll, findCourse)
+import Store
 import Web.Spock
 import Web.Spock.Config
 
@@ -34,12 +35,20 @@ app = do
     text $ "added" <> pack (show newCourse)
   post "/api/enroll" $ do
     cid <- param' "cid"
+    secId <- param' "secId"
+    studentId <- param' "studentId"
     coursesRef <- courses <$> getState
     liftIO $
       atomicModifyIORef' coursesRef $ \courses ->
-        (enroll cid courses, ())
+        (enroll cid secId studentId courses, ())
     courses' <- getState >>= (liftIO . readIORef . courses)
     json $ "enrolled " <> pack (show (findCourse cid courses'))
+  get "/api/hasEnroll" $ do
+    cid <- param' "cid"
+    secId <- param' "secId"
+    studentId <- param' "studentId"
+    courses' <- getState >>= (liftIO . readIORef . courses)
+    json $ alreadyEnroll studentId cid secId courses'
 
 main :: IO ()
 main = do

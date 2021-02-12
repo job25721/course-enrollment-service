@@ -1,12 +1,10 @@
-module Functions (allCourses, findCourse, enroll) where
+module Functions (findCourse, enroll, alreadyEnroll) where
 
-import Data.Course (Course (..))
+import Data.Course (Course (..), Section (..))
+import Data.Person (Student (..))
+import Store
 
-allCourses :: [Course]
-allCourses =
-  [ Course {courseId = 261497, name = "Functional Programming", credit = 3, seat = 10, enrolled = 3},
-    Course {courseId = 261208, name = "Basic Computer Engr", credit = 3, seat = 100, enrolled = 29}
-  ]
+fromMaybe (Just x) = x
 
 findCourse :: Int -> [Course] -> Maybe Course
 findCourse _ [] = Nothing
@@ -14,5 +12,49 @@ findCourse cid (x : xs)
   | courseId x == cid = Just x
   | otherwise = findCourse cid xs
 
-enroll :: Int -> [Course] -> [Course]
-enroll cid = map (\course -> if courseId course == cid then Course {courseId = courseId course, name = name course, credit = credit course, seat = (-) (seat course) 1, enrolled = (+) (enrolled course) 1} else course)
+findSection :: Int -> [Section] -> Maybe Section
+findSection _ [] = Nothing
+findSection secId (x : xs)
+  | sectionId x == secId = Just x
+  | otherwise = findSection secId xs
+
+findStudent :: Int -> [Student] -> Maybe Student
+findStudent _ [] = Nothing
+findStudent sid (x : xs)
+  | studentId x == sid = Just x
+  | otherwise = findStudent sid xs
+
+alreadyEnroll :: Int -> Int -> Int -> [Course] -> Bool
+alreadyEnroll sid cid secId courses
+  | findStudent sid (enrolledPerson (fromMaybe (findSection secId (sections (fromMaybe (findCourse cid courses)))))) == Nothing = False
+  | otherwise = True
+
+enroll :: Int -> Int -> Int -> [Course] -> [Course]
+enroll cid secId sid courses
+  | findStudent sid students /= Nothing && alreadyEnroll sid cid secId courses == False =
+    map
+      ( \course ->
+          if courseId course == cid
+            then
+              Course
+                { courseId = courseId course,
+                  name = name course,
+                  credit = credit course,
+                  sections =
+                    map
+                      ( \sec ->
+                          if sectionId sec == secId
+                            then
+                              Section
+                                { sectionId = sectionId sec,
+                                  seat = seat sec - 1,
+                                  enrolledPerson = fromMaybe (findStudent sid students) : enrolledPerson sec
+                                }
+                            else sec
+                      )
+                      (sections course)
+                }
+            else course
+      )
+      courses
+  | otherwise = courses
