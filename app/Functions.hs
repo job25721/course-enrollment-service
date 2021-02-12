@@ -40,6 +40,7 @@ enroll cid secId sid courses
                 { courseId = courseId course,
                   name = name course,
                   credit = credit course,
+                  lecturer = lecturer course,
                   sections =
                     map
                       ( \sec ->
@@ -48,7 +49,9 @@ enroll cid secId sid courses
                               Section
                                 { sectionId = sectionId sec,
                                   seat = seat sec - 1,
-                                  enrolledPerson = fromMaybe (findStudent sid students) : enrolledPerson sec
+                                  enrolledPerson = fromMaybe (findStudent sid students) : enrolledPerson sec,
+                                  time = time sec,
+                                  day = day sec
                                 }
                             else sec
                       )
@@ -69,6 +72,7 @@ dropCourse cid secId sid =
               { courseId = courseId course,
                 name = name course,
                 credit = credit course,
+                lecturer = lecturer course,
                 sections =
                   map
                     ( \sec ->
@@ -77,7 +81,9 @@ dropCourse cid secId sid =
                             Section
                               { sectionId = sectionId sec,
                                 seat = seat sec + 1,
-                                enrolledPerson = filter (\p -> studentId p /= sid) (enrolledPerson sec)
+                                enrolledPerson = filter (\p -> studentId p /= sid) (enrolledPerson sec),
+                                time = time sec,
+                                day = day sec
                               }
                           else sec
                     )

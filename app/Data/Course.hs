@@ -10,6 +10,7 @@ data Course = Course
   { courseId :: Int,
     name :: [Char],
     credit :: Int,
+    lecturer :: [Char],
     sections :: [Section]
   }
   deriving (Generic, Show)
@@ -21,7 +22,9 @@ instance FromJSON Course
 data Section = Section
   { sectionId :: Int,
     seat :: Int,
-    enrolledPerson :: [Student]
+    enrolledPerson :: [Student],
+    day :: [Char],
+    time :: [Char]
   }
   deriving (Generic, Show)
 
