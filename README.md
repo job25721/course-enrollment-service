@@ -15,12 +15,18 @@ created by Spock framework https://www.spock.li/
 ```js
 body
 {
-    "courseId" : Number
-    "name" : String
-    "credit" : Number
-    "seat" : Number
-    "enrolled" : Number
+    "courseId" : Number,
+    "name" : String,
+    "credit" : Number,
+    "sections" :
+    [
+        {
+            "sectionId" : Number,
+            "seat" : Number,
+            "enrolledPerson" : []
+        }
+    ]
 }
 ```
 
-`POST /enroll?cid=Int` : Enroll a course by id
+`POST /enroll?cid=Int&secId=Int&sid=Int` : Enroll a course by id secId and studentId
