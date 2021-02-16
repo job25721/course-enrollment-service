@@ -29,9 +29,17 @@ alreadyEnroll sid cid secId courses
   | findStudent sid (enrolledPerson (fromMaybe (findSection secId (sections (fromMaybe (findCourse cid courses)))))) == Nothing = False
   | otherwise = True
 
+isJust :: Maybe a -> Bool
+isJust Nothing = False
+isJust (Just _) = True
+
+isNothing :: Maybe a -> Bool
+isNothing Nothing = True
+isNothing _ = False
+
 enroll :: Int -> Int -> Int -> [Course] -> [Course]
 enroll cid secId sid courses
-  | findStudent sid students /= Nothing && alreadyEnroll sid cid secId courses == False =
+  | isJust (findStudent sid students) && not (alreadyEnroll sid cid secId courses) =
     map
       ( \course ->
           if courseId course == cid
@@ -63,31 +71,34 @@ enroll cid secId sid courses
   | otherwise = courses
 
 dropCourse :: Int -> Int -> Int -> [Course] -> [Course]
-dropCourse cid secId sid =
-  map
-    ( \course ->
-        if courseId course == cid
-          then
-            Course
-              { courseId = courseId course,
-                name = name course,
-                credit = credit course,
-                lecturer = lecturer course,
-                sections =
-                  map
-                    ( \sec ->
-                        if sectionId sec == secId
-                          then
-                            Section
-                              { sectionId = sectionId sec,
-                                seat = seat sec + 1,
-                                enrolledPerson = filter (\p -> studentId p /= sid) (enrolledPerson sec),
-                                time = time sec,
-                                day = day sec
-                              }
-                          else sec
-                    )
-                    (sections course)
-              }
-          else course
-    )
+dropCourse cid secId sid courses
+  | isJust (findStudent sid students) && alreadyEnroll sid cid secId courses =
+    map
+      ( \course ->
+          if courseId course == cid
+            then
+              Course
+                { courseId = courseId course,
+                  name = name course,
+                  credit = credit course,
+                  lecturer = lecturer course,
+                  sections =
+                    map
+                      ( \sec ->
+                          if sectionId sec == secId
+                            then
+                              Section
+                                { sectionId = sectionId sec,
+                                  seat = seat sec + 1,
+                                  enrolledPerson = filter (\p -> studentId p /= sid) (enrolledPerson sec),
+                                  time = time sec,
+                                  day = day sec
+                                }
+                            else sec
+                      )
+                      (sections course)
+                }
+            else course
+      )
+      courses
+  | otherwise = courses
