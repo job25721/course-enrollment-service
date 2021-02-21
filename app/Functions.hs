@@ -4,6 +4,7 @@ import Data.Course (Course (..), Section (..))
 import Data.Person (Student (..))
 import Store
 
+fromMaybe :: Maybe a -> a
 fromMaybe (Just x) = x
 
 findCourse :: Int -> [Course] -> Maybe Course
@@ -52,7 +53,7 @@ enroll cid secId sid courses
                   sections =
                     map
                       ( \sec ->
-                          if sectionId sec == secId
+                          if sectionId sec == secId && seat sec /= 0
                             then
                               Section
                                 { sectionId = sectionId sec,
