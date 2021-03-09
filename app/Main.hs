@@ -8,12 +8,20 @@ import Data.Aeson.Text (encodeToLazyText)
 import qualified Data.ByteString.Lazy as B
 import Data.Course (Course (..))
 import Data.IORef
+  ( IORef,
+    atomicModifyIORef',
+    newIORef,
+    readIORef,
+  )
 import Data.Text (pack)
-import Data.Text.Lazy.IO as I
+import Data.Text.Lazy.IO as I (writeFile)
 import Functions (alreadyEnroll, dropCourse, enroll, findCourse)
-import Store
+import Store (allCourses)
 import Web.Spock
 import Web.Spock.Config
+  ( PoolOrConn (PCNoDatabase),
+    defaultSpockCfg,
+  )
 
 newtype ServerState = ServerState {courses :: IORef [Course]}
 
@@ -30,8 +38,14 @@ resetFile = I.writeFile "courses.json" (encodeToLazyText allCourses)
 decodeCoursesArray :: B.ByteString -> [Course]
 decodeCoursesArray courses' = fromMaybe (decode courses' :: Maybe [Course])
 
+corsHeader :: ActionCtxT b (WebStateM () () ServerState) b
+corsHeader = do
+  ctx <- getContext
+  setHeader "Access-Control-Allow-Origin" "*"
+  pure ctx
+
 app :: Api ()
-app = do
+app = prehook corsHeader $ do
   get "/api/courses" $ do
     courses' <- getState >>= (liftIO . readIORef . courses)
     json courses'
@@ -84,4 +98,4 @@ main = do
   courses' <- liftIO $ B.readFile "courses.json"
   st <- ServerState <$> newIORef (decodeCoursesArray courses')
   spockCfg <- defaultSpockCfg () PCNoDatabase st
-  runSpock 3000 (spock spockCfg app)
+  runSpock 8000 (spock spockCfg app)
