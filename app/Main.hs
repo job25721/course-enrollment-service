@@ -53,7 +53,7 @@ app = prehook corsHeader $ do
     courses' <- getState >>= (liftIO . readIORef . courses)
     cid <- param' "cid"
     json $ findCourse cid courses'
-  post "/api/add" $ do
+  post "/api/courses" $ do
     newCourse <- jsonBody' :: ApiAction Course
     coursesRef <- courses <$> getState
     liftIO $
@@ -62,7 +62,16 @@ app = prehook corsHeader $ do
     courses' <- getState >>= (liftIO . readIORef . courses)
     liftIO $ I.writeFile "courses.json" $ encodeToLazyText courses'
     text $ "added" <> pack (show newCourse)
-  post "/api/enroll" $ do
+  delete "/api/courses" $ do
+    cid <- param' "cid"
+    coursesRef <- courses <$> getState
+    liftIO $
+      atomicModifyIORef' coursesRef $ \courses ->
+        (filter (\course -> courseId course /= cid) courses, ())
+    courses' <- getState >>= (liftIO . readIORef . courses)
+    liftIO $ I.writeFile "courses.json" $ encodeToLazyText courses'
+    json $ "removed " <> show cid
+  post "/api/courses/enroll" $ do
     cid <- param' "cid"
     secId <- param' "secId"
     studentId <- param' "studentId"
@@ -75,9 +84,9 @@ app = prehook corsHeader $ do
     liftIO $ I.writeFile "courses.json" $ encodeToLazyText courses''
     json $
       if alreadyEnroll studentId cid secId courses'
-        then "already enrolled"
-        else "enrolled " <> pack (show (findCourse cid courses''))
-  post "/api/drop" $ do
+        then show "already enrolled"
+        else show $ findCourse cid courses''
+  post "/api/courses/drop" $ do
     cid <- param' "cid"
     secId <- param' "secId"
     studentId <- param' "studentId"
