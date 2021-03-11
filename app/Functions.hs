@@ -1,8 +1,8 @@
-module Functions (findCourse, enroll, alreadyEnroll, dropCourse) where
+module Functions (findCourse, enroll, alreadyEnroll, dropCourse, isJust, isNothing, findStudent) where
 
 import Data.Course (Course (..), Section (..))
 import Data.Person (Student (..))
-import Store
+import Store (students)
 
 fromMaybe :: Maybe a -> a
 fromMaybe (Just x) = x
@@ -19,16 +19,14 @@ findSection secId (x : xs)
   | sectionId x == secId = Just x
   | otherwise = findSection secId xs
 
-findStudent :: Int -> [Student] -> Maybe Student
-findStudent _ [] = Nothing
-findStudent sid (x : xs)
-  | studentId x == sid = Just x
-  | otherwise = findStudent sid xs
+findStudent :: Int -> Maybe Student
+findStudent sid = foldl (\acc student -> if sid == studentId student then Just student else acc) Nothing students
+
+findEnrolledStd :: Int -> [Student] -> Bool
+findEnrolledStd sid = foldl (\acc cur -> (studentId cur == sid) || acc) False
 
 alreadyEnroll :: Int -> Int -> Int -> [Course] -> Bool
-alreadyEnroll sid cid secId courses
-  | findStudent sid (enrolledPerson (fromMaybe (findSection secId (sections (fromMaybe (findCourse cid courses)))))) == Nothing = False
-  | otherwise = True
+alreadyEnroll sid cid secId courses = findEnrolledStd sid $ enrolledPerson (fromMaybe (findSection secId (sections (fromMaybe (findCourse cid courses)))))
 
 isJust :: Maybe a -> Bool
 isJust Nothing = False
@@ -40,7 +38,7 @@ isNothing _ = False
 
 enroll :: Int -> Int -> Int -> [Course] -> [Course]
 enroll cid secId sid courses
-  | isJust (findStudent sid students) && not (alreadyEnroll sid cid secId courses) =
+  | isJust (findStudent sid) && not (alreadyEnroll sid cid secId courses) =
     map
       ( \course ->
           if courseId course == cid
@@ -58,7 +56,7 @@ enroll cid secId sid courses
                               Section
                                 { sectionId = sectionId sec,
                                   seat = seat sec - 1,
-                                  enrolledPerson = fromMaybe (findStudent sid students) : enrolledPerson sec,
+                                  enrolledPerson = fromMaybe (findStudent sid) : enrolledPerson sec,
                                   time = time sec,
                                   day = day sec
                                 }
@@ -73,7 +71,7 @@ enroll cid secId sid courses
 
 dropCourse :: Int -> Int -> Int -> [Course] -> [Course]
 dropCourse cid secId sid courses
-  | isJust (findStudent sid students) && alreadyEnroll sid cid secId courses =
+  | isJust (findStudent sid) && alreadyEnroll sid cid secId courses =
     map
       ( \course ->
           if courseId course == cid

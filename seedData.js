@@ -23,12 +23,12 @@ for (let i = 1; i <= 497; i++) {
       sectionId: j + 1,
       seat: Math.floor(Math.random() * 90) + 10,
       enrolledPerson: [],
-      day: day[Math.floor(Math.random() * day.length) + 1],
-      time: time[Math.floor(Math.random() * time.length) + 1],
+      day: day[Math.floor(Math.random() * day.length)],
+      time: time[Math.floor(Math.random() * time.length)],
     });
   }
 }
 
 fs.writeFileSync("./courses.json", JSON.stringify(courses), {
-  encoding: "ascii",
+  encoding: "utf-8",
 });
