@@ -1,4 +1,4 @@
-module Functions (findCourse, enroll, alreadyEnroll, dropCourse, isJust, isNothing, findStudent) where
+module Functions (findCourse, enroll, alreadyEnroll, dropCourse, isJust, isNothing, findStudent, findMyEnrolledCourse) where
 
 import Data.Course (Course (..), Section (..))
 import Data.Person (Student (..))
@@ -24,6 +24,12 @@ findStudent sid = foldl (\acc student -> if sid == studentId student then Just s
 
 findEnrolledStd :: Int -> [Student] -> Bool
 findEnrolledStd sid = foldl (\acc cur -> (studentId cur == sid) || acc) False
+
+findMyEnrollSection :: Int -> [Section] -> Bool
+findMyEnrollSection sid = foldl (\acc cur -> findEnrolledStd sid (enrolledPerson cur) || acc) False
+
+findMyEnrolledCourse :: Int -> [Course] -> [Course]
+findMyEnrolledCourse sid = filter (findMyEnrollSection sid . sections)
 
 alreadyEnroll :: Int -> Int -> Int -> [Course] -> Bool
 alreadyEnroll sid cid secId courses = findEnrolledStd sid $ enrolledPerson (fromMaybe (findSection secId (sections (fromMaybe (findCourse cid courses)))))

@@ -19,7 +19,7 @@ import Data.Person (StdAuth (..), Student (..), Users (..))
 import Data.ReturnApi (ApiResponse (..))
 import Data.Text (pack)
 import Data.Text.Lazy.IO as I (writeFile)
-import Functions (alreadyEnroll, dropCourse, enroll, findCourse, findStudent, isJust, isNothing)
+import Functions (alreadyEnroll, dropCourse, enroll, findCourse, findMyEnrolledCourse, findStudent, isJust, isNothing)
 import Store (allCourses, students)
 import Web.Spock
 import Web.Spock.Config
@@ -62,6 +62,10 @@ app = prehook corsHeader $ do
     db <- getState >>= (liftIO . readIORef . database)
     cid <- param' "cid"
     json $ findCourse cid (courses db)
+  get "/api/myCourses" $ do
+    db <- getState >>= (liftIO . readIORef . database)
+    sid <- param' "sid"
+    json $ findMyEnrolledCourse sid (courses db)
   post "/api/login/std" $ do
     stdAuth <- jsonBody' :: ApiAction StdAuth
     if isJust $ findStudent (stdId stdAuth)
@@ -94,9 +98,12 @@ app = prehook corsHeader $ do
     studentId <- param' "studentId"
     dbRef <- database <$> getState
     db <- getState >>= (liftIO . readIORef . database)
-    liftIO $
-      atomicModifyIORef' dbRef $
-        \db -> (Db {courses = enroll cid secId studentId $ courses db, users = users db}, ())
+    if isJust $ findCourse cid (courses db)
+      then liftIO $
+        atomicModifyIORef' dbRef $
+          \db ->
+            (Db {courses = enroll cid secId studentId $ courses db, users = users db}, ())
+      else json $ ApiResponse {message = "no this course", dataResponse = Nothing}
     db' <- getState >>= (liftIO . readIORef . database)
     liftIO $ I.writeFile "db.json" $ encodeToLazyText db'
     json $
