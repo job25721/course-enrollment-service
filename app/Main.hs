@@ -62,26 +62,6 @@ app = prehook corsHeader $ do
     db <- getState >>= (liftIO . readIORef . database)
     cid <- param' "cid"
     json $ findCourse cid (courses db)
-  get "/api/myCourses" $ do
-    db <- getState >>= (liftIO . readIORef . database)
-    sid <- param' "sid"
-    json $ findMyEnrolledCourse sid (courses db)
-  get "/api/std/info" $ do
-    sid <- param' "sid"
-    json $ findStudent sid
-  get "/api/teacher/info" $ do
-    email <- param' "email"
-    json $ findTeacher email
-  post "/api/login/std" $ do
-    stdAuth <- jsonBody' :: ApiAction StdAuth
-    if isJust $ findStudent (stdId stdAuth)
-      then json $ ApiResponse {message = "Login Successful", dataResponse = Nothing}
-      else json $ ApiResponse {message = "Login Failed", dataResponse = Nothing}
-  post "/api/login/teacher" $ do
-    teacherAuth <- jsonBody' :: ApiAction TeacherAuth
-    if isJust $ findTeacher (tEmail teacherAuth)
-      then json $ ApiResponse {message = "Login Successful", dataResponse = Nothing}
-      else json $ ApiResponse {message = "Login Failed", dataResponse = Nothing}
   post "/api/courses" $ do
     newCourse <- jsonBody' :: ApiAction Course
     dbRef <- database <$> getState
@@ -103,7 +83,19 @@ app = prehook corsHeader $ do
     if isJust (findCourse cid $ courses db)
       then json $ ApiResponse {message = "Course removed", dataResponse = findCourse cid $ courses db}
       else json $ ApiResponse {message = "No this course", dataResponse = Nothing}
-  post "/api/courses/enroll" $ do
+  post "/api/user/std/login" $ do
+    stdAuth <- jsonBody' :: ApiAction StdAuth
+    if isJust $ findStudent (stdId stdAuth)
+      then json $ ApiResponse {message = "Login Successful", dataResponse = Nothing}
+      else json $ ApiResponse {message = "Login Failed", dataResponse = Nothing}
+  get "/api/user/std/my" $ do
+    sid <- param' "sid"
+    json $ findStudent sid
+  get "/api/user/std/courses" $ do
+    db <- getState >>= (liftIO . readIORef . database)
+    sid <- param' "sid"
+    json $ findMyEnrolledCourse sid (courses db)
+  post "/api/user/std/enroll" $ do
     cid <- param' "cid"
     secId <- param' "secId"
     studentId <- param' "studentId"
@@ -124,7 +116,7 @@ app = prehook corsHeader $ do
           if alreadyEnroll studentId cid secId $ courses db
             then ApiResponse {message = "You has already enrolled this course", dataResponse = Nothing}
             else ApiResponse {message = "Enrolled", dataResponse = findCourse cid $ courses db'}
-  post "/api/courses/drop" $ do
+  post "/api/user/std/drop" $ do
     cid <- param' "cid"
     secId <- param' "secId"
     studentId <- param' "studentId"
@@ -139,6 +131,14 @@ app = prehook corsHeader $ do
       if not $ alreadyEnroll studentId cid secId $ courses db
         then ApiResponse {message = "You haven't enroll this course", dataResponse = Nothing}
         else ApiResponse {message = "Droped", dataResponse = findCourse cid $ courses db'}
+  post "/api/user/teacher/login" $ do
+    teacherAuth <- jsonBody' :: ApiAction TeacherAuth
+    if isJust $ findTeacher (tEmail teacherAuth)
+      then json $ ApiResponse {message = "Login Successful", dataResponse = Nothing}
+      else json $ ApiResponse {message = "Login Failed", dataResponse = Nothing}
+  get "/api/user/teacher/my" $ do
+    email <- param' "email"
+    json $ findTeacher email
 
 main :: IO ()
 main = do
