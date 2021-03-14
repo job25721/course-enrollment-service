@@ -1,8 +1,8 @@
-module Functions (findCourse, enroll, alreadyEnroll, dropCourse, isJust, isNothing, findStudent, findMyEnrolledCourse) where
+module Functions (findCourse, enroll, alreadyEnroll, dropCourse, isJust, isNothing, findStudent, findMyEnrolledCourse, findTeacher) where
 
 import Data.Course (Course (..), Section (..))
-import Data.Person (Student (..))
-import Store (students)
+import Data.Person (Student (..), Teacher (..))
+import Store (allStudents, allTeachers)
 
 fromMaybe :: Maybe a -> a
 fromMaybe (Just x) = x
@@ -20,7 +20,10 @@ findSection secId (x : xs)
   | otherwise = findSection secId xs
 
 findStudent :: Int -> Maybe Student
-findStudent sid = foldl (\acc student -> if sid == studentId student then Just student else acc) Nothing students
+findStudent sid = foldl (\acc student -> if sid == studentId student then Just student else acc) Nothing allStudents
+
+findTeacher :: [Char] -> Maybe Teacher
+findTeacher email = foldl (\acc teacher -> if email == teacherEmail teacher then Just teacher else acc) Nothing allTeachers
 
 findEnrolledStd :: Int -> [Student] -> Bool
 findEnrolledStd sid = foldl (\acc cur -> (studentId cur == sid) || acc) False

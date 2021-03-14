@@ -15,12 +15,12 @@ import Data.IORef
     newIORef,
     readIORef,
   )
-import Data.Person (StdAuth (..), Student (..), Users (..))
+import Data.Person (StdAuth (..), Student (..), TeacherAuth (..), Users (..))
 import Data.ReturnApi (ApiResponse (..))
 import Data.Text (pack)
 import Data.Text.Lazy.IO as I (writeFile)
-import Functions (alreadyEnroll, dropCourse, enroll, findCourse, findMyEnrolledCourse, findStudent, isJust, isNothing)
-import Store (allCourses, students)
+import Functions (alreadyEnroll, dropCourse, enroll, findCourse, findMyEnrolledCourse, findStudent, findTeacher, isJust, isNothing)
+import Store (allCourses, allStudents, allTeachers)
 import Web.Spock
 import Web.Spock.Config
   ( PoolOrConn (PCNoDatabase),
@@ -39,7 +39,7 @@ fromMaybe (Just x) = x
 resetFile :: IO ()
 resetFile =
   I.writeFile "db.json" $
-    encodeToLazyText Db {courses = allCourses, users = Users {studnets = students}}
+    encodeToLazyText Db {courses = allCourses, users = Users {students = allStudents, teachers = allTeachers}}
 
 decodeCoursesArray :: B.ByteString -> [Course]
 decodeCoursesArray courses' = fromMaybe (decode courses' :: Maybe [Course])
@@ -66,9 +66,20 @@ app = prehook corsHeader $ do
     db <- getState >>= (liftIO . readIORef . database)
     sid <- param' "sid"
     json $ findMyEnrolledCourse sid (courses db)
+  get "/api/std/info" $ do
+    sid <- param' "sid"
+    json $ findStudent sid
+  get "/api/teacher/info" $ do
+    email <- param' "email"
+    json $ findTeacher email
   post "/api/login/std" $ do
     stdAuth <- jsonBody' :: ApiAction StdAuth
     if isJust $ findStudent (stdId stdAuth)
+      then json $ ApiResponse {message = "Login Successful", dataResponse = Nothing}
+      else json $ ApiResponse {message = "Login Failed", dataResponse = Nothing}
+  post "/api/login/teacher" $ do
+    teacherAuth <- jsonBody' :: ApiAction TeacherAuth
+    if isJust $ findTeacher (tEmail teacherAuth)
       then json $ ApiResponse {message = "Login Successful", dataResponse = Nothing}
       else json $ ApiResponse {message = "Login Failed", dataResponse = Nothing}
   post "/api/courses" $ do
@@ -80,7 +91,7 @@ app = prehook corsHeader $ do
     db <- getState >>= (liftIO . readIORef . database)
     liftIO $ I.writeFile "db.json" $ encodeToLazyText db
     json $ ApiResponse {message = "Course added", dataResponse = Just newCourse}
-  delete "/api/courses/" $ do
+  delete "/api/courses" $ do
     cid <- param' "cid"
     dbRef <- database <$> getState
     db <- getState >>= (liftIO . readIORef . database)
@@ -111,7 +122,7 @@ app = prehook corsHeader $ do
         then ApiResponse {message = "No this student id", dataResponse = Nothing}
         else
           if alreadyEnroll studentId cid secId $ courses db
-            then ApiResponse {message = "You have alrady enrolled this course", dataResponse = Nothing}
+            then ApiResponse {message = "You has already enrolled this course", dataResponse = Nothing}
             else ApiResponse {message = "Enrolled", dataResponse = findCourse cid $ courses db'}
   post "/api/courses/drop" $ do
     cid <- param' "cid"

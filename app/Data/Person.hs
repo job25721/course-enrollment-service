@@ -1,12 +1,13 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Data.Person (Student (..), Teacher (..), Users (..), User (..), StdAuth (..)) where
+module Data.Person (Student (..), Teacher (..), Users (..), User (..), StdAuth (..), TeacherAuth (..)) where
 
-import Data.Aeson hiding (json)
+import Data.Aeson (FromJSON, ToJSON)
 import GHC.Generics
 
 data Users = Users
-  { studnets :: [Student]
+  { students :: [Student],
+    teachers :: [Teacher]
   }
   deriving (Generic, Show)
 
@@ -59,3 +60,12 @@ data StdAuth = StdAuth
 instance ToJSON StdAuth
 
 instance FromJSON StdAuth
+
+data TeacherAuth = TeacherAuth
+  { tEmail :: [Char]
+  }
+  deriving (Generic, Show)
+
+instance ToJSON TeacherAuth
+
+instance FromJSON TeacherAuth
