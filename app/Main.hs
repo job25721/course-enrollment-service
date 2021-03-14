@@ -98,37 +98,37 @@ app = prehook corsHeader $ do
   post "/api/user/std/enroll" $ do
     cid <- param' "cid"
     secId <- param' "secId"
-    studentId <- param' "studentId"
+    sid <- param' "sid"
     dbRef <- database <$> getState
     db <- getState >>= (liftIO . readIORef . database)
     if isJust $ findCourse cid (courses db)
       then liftIO $
         atomicModifyIORef' dbRef $
           \db ->
-            (Db {courses = enroll cid secId studentId $ courses db, users = users db}, ())
+            (Db {courses = enroll cid secId sid $ courses db, users = users db}, ())
       else json $ ApiResponse {message = "no this course", dataResponse = Nothing}
     db' <- getState >>= (liftIO . readIORef . database)
     liftIO $ I.writeFile "db.json" $ encodeToLazyText db'
     json $
-      if isNothing $ findStudent studentId
+      if isNothing $ findStudent sid
         then ApiResponse {message = "No this student id", dataResponse = Nothing}
         else
-          if alreadyEnroll studentId cid secId $ courses db
+          if alreadyEnroll sid cid secId $ courses db
             then ApiResponse {message = "You has already enrolled this course", dataResponse = Nothing}
             else ApiResponse {message = "Enrolled", dataResponse = findCourse cid $ courses db'}
   post "/api/user/std/drop" $ do
     cid <- param' "cid"
     secId <- param' "secId"
-    studentId <- param' "studentId"
+    sid <- param' "sid"
     dbRef <- database <$> getState
     db <- getState >>= (liftIO . readIORef . database)
     liftIO $
       atomicModifyIORef' dbRef $ \db ->
-        (Db {courses = dropCourse cid secId studentId $ courses db, users = users db}, ())
+        (Db {courses = dropCourse cid secId sid $ courses db, users = users db}, ())
     db' <- getState >>= (liftIO . readIORef . database)
     liftIO $ I.writeFile "db.json" $ encodeToLazyText db'
     json $
-      if not $ alreadyEnroll studentId cid secId $ courses db
+      if not $ alreadyEnroll sid cid secId $ courses db
         then ApiResponse {message = "You haven't enroll this course", dataResponse = Nothing}
         else ApiResponse {message = "Droped", dataResponse = findCourse cid $ courses db'}
   post "/api/user/teacher/login" $ do
