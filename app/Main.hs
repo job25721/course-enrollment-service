@@ -19,7 +19,7 @@ import Data.Person (StdAuth (..), Student (..), TeacherAuth (..), Users (..))
 import Data.ReturnApi (ApiResponse (..))
 import Data.Text (pack)
 import Data.Text.Lazy.IO as I (writeFile)
-import Functions (alreadyEnroll, dropCourse, enroll, findCourse, findMyEnrolledCourse, findStudent, findTeacher, isJust, isNothing)
+import Functions (alreadyEnroll, dropCourse, enroll, findCourse, findMyAddedCourse, findMyEnrolledCourse, findStudent, findTeacher, isJust, isNothing)
 import Store (allCourses, allStudents, allTeachers)
 import Web.Spock
 import Web.Spock.Config
@@ -139,6 +139,10 @@ app = prehook corsHeader $ do
   get "/api/user/teacher/my" $ do
     email <- param' "email"
     json $ findTeacher email
+  get "/api/user/teacher/courses" $ do
+    email <- param' "email"
+    db <- getState >>= (liftIO . readIORef . database)
+    json $ findMyAddedCourse email $ courses db
 
 main :: IO ()
 main = do

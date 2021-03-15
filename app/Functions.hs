@@ -1,4 +1,4 @@
-module Functions (findCourse, enroll, alreadyEnroll, dropCourse, isJust, isNothing, findStudent, findMyEnrolledCourse, findTeacher) where
+module Functions (findCourse, enroll, alreadyEnroll, dropCourse, isJust, isNothing, findStudent, findMyEnrolledCourse, findTeacher, findMyAddedCourse) where
 
 import Data.Course (Course (..), Section (..))
 import Data.Person (Student (..), Teacher (..))
@@ -24,6 +24,9 @@ findStudent sid = foldl (\acc student -> if sid == studentId student then Just s
 
 findTeacher :: [Char] -> Maybe Teacher
 findTeacher email = foldl (\acc teacher -> if email == teacherEmail teacher then Just teacher else acc) Nothing allTeachers
+
+findMyAddedCourse :: [Char] -> [Course] -> [Course]
+findMyAddedCourse email = filter (\course -> teacherEmail (lecturer course) == email)
 
 findEnrolledStd :: Int -> [Student] -> Bool
 findEnrolledStd sid = foldl (\acc cur -> (studentId cur == sid) || acc) False
