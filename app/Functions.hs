@@ -1,4 +1,4 @@
-module Functions (findCourse, enroll, alreadyEnroll, dropCourse, isJust, isNothing, findStudent, findMyEnrolledCourse, findTeacher, findMyAddedCourse) where
+module Functions (findCourse, enroll, alreadyEnroll, dropCourse, isJust, isNothing, findStudent, findMyEnrolledCourse, findTeacher, findMyAddedCourse, fromMaybe) where
 
 import Data.Course (Course (..), Section (..))
 import Data.Person (Student (..), Teacher (..))
