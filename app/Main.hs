@@ -17,9 +17,11 @@ import Data.IORef
   )
 import Data.Person (StdAuth (..), Student (..), TeacherAuth (..), Users (..))
 import Data.ReturnApi (ApiResponse (..))
-import Data.Text (pack)
 import Data.Text.Lazy.IO as I (writeFile)
 import Functions (alreadyEnroll, dropCourse, enroll, findCourse, findMyAddedCourse, findMyEnrolledCourse, findStudent, findTeacher, isJust, isNothing)
+import Network.Wai
+import Network.Wai.Handler.Warp (run)
+import Network.Wai.Middleware.Cors
 import Store (allCourses, allStudents, allTeachers)
 import Web.Spock
 import Web.Spock.Config
@@ -47,17 +49,14 @@ decodeCoursesArray courses' = fromMaybe (decode courses' :: Maybe [Course])
 decodeToJson :: B.ByteString -> Db
 decodeToJson db = fromMaybe (decode db :: Maybe Db)
 
-corsHeader :: ActionCtxT b (WebStateM () () ServerState) b
-corsHeader = do
-  ctx <- getContext
-  setHeader "Access-Control-Allow-Origin" "*"
-  pure ctx
+getCourse :: ActionCtxT () (WebStateM () () ServerState) ()
+getCourse = do
+  db <- getState >>= (liftIO . readIORef . database)
+  json $ courses db
 
-app :: Api ()
-app = prehook corsHeader $ do
-  get "/api/courses" $ do
-    db <- getState >>= (liftIO . readIORef . database)
-    json $ courses db
+app :: SpockM () () ServerState ()
+app = do
+  get "/api/courses" getCourse
   get "/api/course" $ do
     db <- getState >>= (liftIO . readIORef . database)
     cid <- param' "cid"
@@ -144,9 +143,13 @@ app = prehook corsHeader $ do
     db <- getState >>= (liftIO . readIORef . database)
     json $ findMyAddedCourse email $ courses db
 
+corsMiddleware :: Middleware
+corsMiddleware = cors (const $ Just (simpleCorsResourcePolicy {corsRequestHeaders = ["Content-Type"]}))
+
 main :: IO ()
 main = do
   db <- liftIO $ B.readFile "db.json"
-  st <- ServerState <$> newIORef (decodeToJson db)
-  spockCfg <- defaultSpockCfg () PCNoDatabase st
-  runSpock 8000 (spock spockCfg app)
+  state <- ServerState <$> newIORef (decodeToJson db)
+  spockCfg <- defaultSpockCfg () PCNoDatabase state
+  myApp <- spockAsApp (spock spockCfg app)
+  run 8000 (corsMiddleware myApp)
