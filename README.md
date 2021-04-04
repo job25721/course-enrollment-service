@@ -29,7 +29,7 @@ created by Spock framework https://www.spock.li/
 }
 ```
 
-`DELETE /courses` : Delete course <br>
+`POST /course/delete` : Delete course <br>
 
 ```hs
 @param

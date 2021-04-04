@@ -70,7 +70,8 @@ enroll cid secId sid courses
                                   seat = seat sec - 1,
                                   enrolledPerson = fromMaybe (findStudent sid) : enrolledPerson sec,
                                   time = time sec,
-                                  day = day sec
+                                  day = day sec,
+                                  room = room sec
                                 }
                             else sec
                       )
@@ -103,6 +104,7 @@ dropCourse cid secId sid courses
                                   seat = seat sec + 1,
                                   enrolledPerson = filter (\p -> studentId p /= sid) (enrolledPerson sec),
                                   time = time sec,
+                                  room = room sec,
                                   day = day sec
                                 }
                             else sec

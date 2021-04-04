@@ -40,7 +40,7 @@ app = do
   get "/api/courses" getCourse
   get "/api/course" getCourseById
   post "/api/courses" addNewCourse
-  delete "/api/courses" deleteCourse
+  post "/api/course/delete" deleteCourse
   post "/api/user/std/login" studentLogin
   get "/api/user/std/my" getStdInfo
   get "/api/user/std/courses" getMyEnrolledCourse

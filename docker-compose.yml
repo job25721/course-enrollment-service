@@ -1,0 +1,9 @@
+version: "2"
+services:
+  course-enroll-service:
+    image: haskell:8.10.2-buster
+    # ports:
+    #   - "8000:8000"
+    volumes:
+      - .:usr/app
+    command: ["/bin/sh", "-c"]

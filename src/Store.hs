@@ -17,7 +17,7 @@ allCourses =
         credit = 3,
         lecturer = fromMaybe $ getTeacherById 2,
         sections =
-          [Section {sectionId = 1, seat = 50, day = "M-Th", time = "11:00-12:30", enrolledPerson = []}]
+          [Section {sectionId = 1, seat = 50, day = "M-Th", time = "11:00-12:30", enrolledPerson = [], room = "516"}]
       },
     Course
       { courseId = 261218,
@@ -25,8 +25,8 @@ allCourses =
         credit = 3,
         lecturer = fromMaybe $ getTeacherById 1,
         sections =
-          [ Section {sectionId = 1, seat = 50, day = "Tu-F", time = "14:30-16:00", enrolledPerson = []},
-            Section {sectionId = 2, seat = 50, day = "Wed", time = "13:00-16:00", enrolledPerson = []}
+          [ Section {sectionId = 1, seat = 50, day = "Tu-F", time = "14:30-16:00", enrolledPerson = [], room = "521"},
+            Section {sectionId = 2, seat = 50, day = "Wed", time = "13:00-16:00", enrolledPerson = [], room = "422"}
           ]
       }
   ]

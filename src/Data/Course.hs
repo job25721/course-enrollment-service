@@ -24,7 +24,8 @@ data Section = Section
     seat :: Int,
     enrolledPerson :: [Student],
     day :: [Char],
-    time :: [Char]
+    time :: [Char],
+    room :: [Char]
   }
   deriving (Generic, Show)
 
