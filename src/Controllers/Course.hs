@@ -87,4 +87,4 @@ dropCourseById = do
   json $
     if not $ alreadyEnroll sid cid secId $ courses db
       then ApiResponse {message = "You haven't enroll this course", dataResponse = Nothing}
-      else ApiResponse {message = "Droped", dataResponse = findCourse cid $ courses db'}
+      else ApiResponse {message = "Dropped", dataResponse = findCourse cid $ courses db'}
